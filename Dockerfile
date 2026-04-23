@@ -21,7 +21,9 @@ COPY requirements.txt .
 
 # Install PyTorch (compatible version)
 RUN pip install --no-cache-dir torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir dlib==19.24.2
+RUN pip install --no-cache-dir \
+    --extra-index-url https://pypi.org/simple/ \
+    "dlib @ https://github.com/z-mahmud22/Dlib_Windows_Python3.x/releases/download/v19.24.1/dlib-19.24.1-cp39-cp39-linux_x86_64.whl"
 
 # Install other requirements
 RUN pip install --no-cache-dir \
