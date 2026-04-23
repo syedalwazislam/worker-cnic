@@ -21,6 +21,7 @@ COPY requirements.txt .
 
 # Install PyTorch (compatible version)
 RUN pip install --no-cache-dir torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir dlib==19.24.2
 
 # Install other requirements
 RUN pip install --no-cache-dir \
