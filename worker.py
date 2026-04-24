@@ -89,19 +89,48 @@ def decode_base64_image(base64_str: str) -> np.ndarray:
         return None
 
 def store_task_result(task_id: str, result: dict):
-    """Store task result directly in Redis"""
+    """Store task result directly in Redis with proper type conversion"""
     try:
+        logger.info(f"🔍 store_task_result called for {task_id}")
+        
+        # Convert numpy types to Python native types
+        def convert_to_serializable(obj):
+            if isinstance(obj, np.bool_):
+                return bool(obj)
+            elif isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {k: convert_to_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_serializable(item) for item in obj]
+            else:
+                return obj
+        
+        # Convert result dict
+        serializable_result = convert_to_serializable(result)
+        
         task_data = {
             "task_id": task_id,
             "status": "completed",
-            "result": result,
+            "result": serializable_result,
             "completed_at": datetime.now().isoformat()
         }
-        redis_client.setex(f"task:{task_id}", 3600, json.dumps(task_data))
+        
+        # Test JSON serialization
+        test_json = json.dumps(task_data)
+        logger.info(f"🔍 JSON serialization successful, length: {len(test_json)}")
+        
+        # Store in Redis
+        redis_client.setex(f"task:{task_id}", 3600, test_json)
         logger.info(f"✅ Task {task_id} result stored in Redis")
         return True
+        
     except Exception as e:
-        logger.error(f"❌ Failed to store result: {e}")
+        logger.error(f"❌ Failed to store result: {e}", exc_info=True)
         return False
 
 def store_task_error(task_id: str, error_msg: str):
